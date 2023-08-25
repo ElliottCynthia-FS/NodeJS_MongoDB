@@ -1,0 +1,65 @@
+const Author = require('../models/Author');
+
+exports.getAuthor = async (req, res) => {
+    const authors = await Author.find();
+    res.status(200).json({
+        data: authors,
+        status: "success",
+        message: `${req.method} - Author request made`,
+    });
+};
+
+exports.getAuthorById = async (req, res) => {
+    const { id } = req.params;
+    const author = await Author.findById(id);
+    res.status(200).json({
+        data: author,
+        status: "success",
+        message: `${req.method} - Author by Id request made`,
+    });
+};
+
+exports.createAuthor = async (req, res) => {
+    const { author } = req.body;
+    const newAuthor = await Author.create(author);
+    res.status(200).json({
+        data: newAuthor,
+        status: "success",
+        message: `${req.method} - Author addition made`,
+    });
+};
+
+exports.updateAuthor = async (req, res) => {
+    const { id } = req.params;
+    const author = await Author.findByIdAndUpdate(id, req.body, {
+        new: true,
+        runValidators: true,
+    });
+    res.status(200).json({
+        data: author,
+        status: "success",
+        message: `${req.method} - Author update by Id made`,
+    });
+};
+
+exports.deleteAuthor = async (req, res) => {
+    const { id } = req.params;
+    // do not need to store the deleted author in a variable since we are not returning it
+    await Author.findByIdAndDelete(id);
+    res.status(200).json({
+        id,
+        status: "success",
+        message: `${req.method} - Author deletion by Id made`,
+    });
+};
+
+//* Use this if syntax is "const getAuthor = async....." etc
+/* 
+module.exports = {
+    getAuthor,
+    getAuthorById,
+    createAuthor,
+    updateAuthor,
+    deleteAuthor
+}
+*/
