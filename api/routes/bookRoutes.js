@@ -10,43 +10,72 @@ router.get("/", (req, res, next) => {
 });
 
 router.post("/", (req, res, next) => {
-    const newBook = new Book({
-        _id: new mongoose.Types.ObjectId(),
-        title: req.body.title,
-        author: req.body.author
-    });
-
-    // Write to the database
-    newBook.save()
-        .then(result => {
-            console.log(result);
-            res.status(200).json({
-                message: "Book created successfully",
-                book: {
-                    title: result.title,
-                    author: result.author,
-                    id: result._id,
-                    metadata: {
-                        method: req.method,
-                        host: req.hostname,
-                    }
-                }
+    // Add code to see if Book exists
+    Book.find({ 
+        title: req.body.title, 
+        author: req.body.author 
+    })
+    // .then() is not a promise, so need to add .exec() to make it a promise
+    // this will allow you to .then() and .catch()
+    .exec()
+    .then(result => {
+        console.log(result);
+        // Post is going to return back result and result is going to be an array
+        if(result.length > 0) {
+            return res.status(409).json({
+                message: "Book already exists"
             })
-        })
-        .catch(err => {
-            console.log(err.message);
-            res.status(500).json({
-                error: {
-                    message: err.message,
-                }
-            })
+        }
+        const newBook = new Book({
+            _id: new mongoose.Types.ObjectId(),
+            title: req.body.title,
+            author: req.body.author
         });
     
-    // This was the original code before Schema was created
+        // Write to the database
+        newBook.save()
+            .then(result => {
+                console.log(result);
+                res.status(200).json({
+                    message: "Book created successfully",
+                    book: {
+                        title: result.title,
+                        author: result.author,
+                        id: result._id,
+                        metadata: {
+                            method: req.method,
+                            host: req.hostname,
+                        }
+                    }
+                })
+            })
+            .catch(err => {
+                console.log(err.message);
+                res.status(500).json({
+                    error: {
+                        message: err.message,
+                    }
+                })
+            });
+    })
+    .catch(err => {
+        console.error(err);
+        res.status(500).json({
+            error: {
+                message: "Unable to save book with title: " 
+                + req.body.title 
+                + " by author: " 
+                + req.body.author,
+            }
+        })
+    })
+});
+
+//* This was the original code for POST before Schema was created
+    // router.post("/", (req, res, next) => {
     //res.json({
         //message: "Books - POST"
     //});
-});
 
 router.get("/:id", (req, res, next) => {
     const { id } = req.params;
